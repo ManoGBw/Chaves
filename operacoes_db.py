@@ -1,14 +1,11 @@
-# operacoes_db.py
 import db_manager
 from datetime import datetime
-import mysql.connector # Importar para tratar erros específicos
+import mysql.connector 
 
 def verificar_chaves_disponiveis():
     """Consulta e exibe todas as chaves com status 'Disponível'."""
-    print("\n--- Chaves Disponíveis ---")
     
-    # <-- MUDANÇA: Query ajustada para suas tabelas e colunas
-    # Juntamos Bloco, Sala e Chave para dar uma informação completa
+    print("\n--- Chaves Disponíveis ---")
     query = """
     SELECT 
         c.codigo_visual, 
@@ -205,6 +202,216 @@ def cadastrar_aluno(cpf, nome, telefone, matricula):
             print(f"Erro: O CPF '{cpf}' ou a Matrícula '{matricula}' já existem no banco.")
         else:
             print(f"Erro ao cadastrar aluno: {err}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def cadastrar_aluno(cpf, nome, telefone, matricula):
+    """Cadastra uma nova pessoa e, em seguida, um aluno (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+        
+    cursor = conn.cursor()
+    try:
+        # 1. Insere na tabela 'Pai' (PESSOA)
+        query_pessoa = "INSERT INTO PESSOA (cpf, nome, telefone) VALUES (%s, %s, %s)"
+        cursor.execute(query_pessoa, (cpf, nome, telefone))
+        
+        # 2. Insere na tabela 'Filha' (ALUNO)
+        query_aluno = "INSERT INTO ALUNO (cpf, numero_matricula) VALUES (%s, %s)"
+        cursor.execute(query_aluno, (cpf, matricula))
+
+        # Se ambos os inserts deram certo, confirma a transação
+        conn.commit()
+        print(f"Aluno {nome} (CPF: {cpf}) cadastrado com sucesso.")
+    
+    except mysql.connector.Error as err:
+        # Se algo deu errado (ex: CPF duplicado), desfaz tudo
+        print(f"Erro ao cadastrar aluno: {err}")
+        if err.errno == 1062: # Duplicate entry
+            print("Erro: O CPF ou a Matrícula informados já existem.")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def cadastrar_professor(cpf, nome, telefone, siape, departamento):
+    """Cadastra uma nova pessoa e, em seguida, um professor (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+        
+    cursor = conn.cursor()
+    try:
+        # 1. Insere na tabela 'Pai' (PESSOA)
+        query_pessoa = "INSERT INTO PESSOA (cpf, nome, telefone) VALUES (%s, %s, %s)"
+        cursor.execute(query_pessoa, (cpf, nome, telefone))
+        
+        # 2. Insere na tabela 'Filha' (PROFESSOR)
+        query_prof = "INSERT INTO PROFESSOR (cpf, siape, departamento) VALUES (%s, %s, %s)"
+        cursor.execute(query_prof, (cpf, siape, departamento))
+
+        conn.commit()
+        print(f"Professor {nome} (CPF: {cpf}) cadastrado com sucesso.")
+    
+    except mysql.connector.Error as err:
+        print(f"Erro ao cadastrar professor: {err}")
+        if err.errno == 1062: # Duplicate entry
+            print("Erro: O CPF ou o SIAPE informados já existem.")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def cadastrar_servidor_tecnico(cpf, nome, telefone, siape, setor):
+    """Cadastra uma nova pessoa e, em seguida, um servidor (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+        
+    cursor = conn.cursor()
+    try:
+        # 1. Insere na tabela 'Pai' (PESSOA)
+        query_pessoa = "INSERT INTO PESSOA (cpf, nome, telefone) VALUES (%s, %s, %s)"
+        cursor.execute(query_pessoa, (cpf, nome, telefone))
+        
+        # 2. Insere na tabela 'Filha' (SERVIDOR_TECNICO)
+        query_serv = "INSERT INTO SERVIDOR_TECNICO (cpf, siape, setor) VALUES (%s, %s, %s)"
+        cursor.execute(query_serv, (cpf, siape, setor))
+
+        conn.commit()
+        print(f"Servidor {nome} (CPF: {cpf}) cadastrado com sucesso.")
+    
+    except mysql.connector.Error as err:
+        print(f"Erro ao cadastrar servidor: {err}")
+        if err.errno == 1062: # Duplicate entry
+            print("Erro: O CPF ou o SIAPE informados já existem.")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def listar_blocos():
+    """Consulta e exibe os blocos cadastrados."""
+    print("\n--- Blocos Disponíveis ---")
+    query = "SELECT id_bloco, nome_bloco FROM BLOCO"
+    blocos = db_manager.execute_query(query)
+    
+    if not blocos:
+        print("Atenção: Nenhum bloco cadastrado.")
+        print("Você precisa cadastrar um BLOCO no banco antes de criar salas.")
+        return False # Retorna False para indicar que não há blocos
+
+    for bloco in blocos:
+        print(f"ID: {bloco['id_bloco']} | Nome: {bloco['nome_bloco']}")
+    return True # Retorna True para indicar que há blocos
+
+def cadastrar_sala_de_aula(id_sala, numero_sala, id_bloco, capacidade):
+    """Cadastra uma nova SALA e a define como SALA_DE_AULA (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    
+    try:
+        # 1. Insere na tabela 'Pai' (SALA)
+        # O status padrão ao criar é 'Disponível'
+        query_sala = """
+        INSERT INTO SALA (id_sala, numero_sala, status, id_bloco) 
+        VALUES (%s, %s, 'Disponível', %s)
+        """
+        cursor.execute(query_sala, (id_sala, numero_sala, id_bloco))
+        
+        # 2. Insere na tabela 'Filha' (SALA_DE_AULA)
+        query_tipo = """
+        INSERT INTO SALA_DE_AULA (id_sala, capacidade_alunos) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_tipo, (id_sala, capacidade))
+
+        conn.commit()
+        print(f"Sala de Aula '{numero_sala}' (ID: {id_sala}) cadastrada com sucesso.")
+
+    except mysql.connector.Error as err:
+        print(f"Erro ao cadastrar Sala de Aula: {err}")
+        if err.errno == 1062: # Duplicate entry
+            print(f"Erro: O ID de sala '{id_sala}' já existe.")
+        elif err.errno == 1452: # Foreign Key constraint fails
+            print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def cadastrar_laboratorio(id_sala, numero_sala, id_bloco, qtde_computadores):
+    """Cadastra uma nova SALA e a define como LABORATORIO (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    
+    try:
+        # 1. Insere na tabela 'Pai' (SALA)
+        query_sala = """
+        INSERT INTO SALA (id_sala, numero_sala, status, id_bloco) 
+        VALUES (%s, %s, 'Disponível', %s)
+        """
+        cursor.execute(query_sala, (id_sala, numero_sala, id_bloco))
+        
+        # 2. Insere na tabela 'Filha' (LABORATORIO)
+        query_tipo = """
+        INSERT INTO LABORATORIO (id_sala, qtde_computadores) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_tipo, (id_sala, qtde_computadores))
+
+        conn.commit()
+        print(f"Laboratório '{numero_sala}' (ID: {id_sala}) cadastrado com sucesso.")
+
+    except mysql.connector.Error as err:
+        print(f"Erro ao cadastrar Laboratório: {err}")
+        if err.errno == 1062:
+            print(f"Erro: O ID de sala '{id_sala}' já existe.")
+        elif err.errno == 1452:
+            print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def cadastrar_escritorio(id_sala, numero_sala, id_bloco, setor_responsavel):
+    """Cadastra uma nova SALA e a define como ESCRITORIO (em uma transação)."""
+    conn = db_manager.get_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    
+    try:
+        # 1. Insere na tabela 'Pai' (SALA)
+        query_sala = """
+        INSERT INTO SALA (id_sala, numero_sala, status, id_bloco) 
+        VALUES (%s, %s, 'Disponível', %s)
+        """
+        cursor.execute(query_sala, (id_sala, numero_sala, id_bloco))
+        
+        # 2. Insere na tabela 'Filha' (ESCRITORIO)
+        query_tipo = """
+        INSERT INTO ESCRITORIO (id_sala, setor_responsavel) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_tipo, (id_sala, setor_responsavel))
+
+        conn.commit()
+        print(f"Escritório '{numero_sala}' (ID: {id_sala}) cadastrado com sucesso.")
+
+    except mysql.connector.Error as err:
+        print(f"Erro ao cadastrar Escritório: {err}")
+        if err.errno == 1062:
+            print(f"Erro: O ID de sala '{id_sala}' já existe.")
+        elif err.errno == 1452:
+            print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
         conn.rollback()
     finally:
         cursor.close()
