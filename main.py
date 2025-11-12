@@ -1,4 +1,5 @@
 import operacoes_db
+import relatorios # <--- ADICIONADO
 import sys
 
 def menu_emprestimo():
@@ -149,6 +150,51 @@ def menu_cadastro_sala():
         else:
             print("Opção inválida.")
 
+# --- NOVO MENU DE RELATÓRIOS ---
+def menu_relatorios():
+    """Exibe o sub-menu para geração de relatórios."""
+    while True:
+        print("\n--- Menu de Relatórios ---")
+        print("1. Professores de Informática")
+        print("2. Quem está com a chave da sala '102'")
+        print("3. Contagem de salas de aula (Capacidade > 45)")
+        print("4. Salas em Manutenção")
+        print("5. Servidores Técnicos e Setores (Ordenado)")
+        print("6. Funcionário com mais retiradas")
+        print("7. Chaves do 'Bloco B - Laboratórios'")
+        print("8. Laboratório com mais computadores")
+        print("9. Empréstimos na data '2025-10-15'")
+        print("10. Discrepância: Empréstimo ativo mas sala não 'Indisponível'")
+        print("0. Voltar ao Menu Principal")
+        
+        opcao_rel = input("Escolha um relatório: ")
+
+        if opcao_rel == '1':
+            relatorios.relatorio_professores_informatica()
+        elif opcao_rel == '2':
+            relatorios.relatorio_pessoa_com_chave_102()
+        elif opcao_rel == '3':
+            relatorios.relatorio_contagem_salas_aula_maior_45()
+        elif opcao_rel == '4':
+            relatorios.relatorio_salas_em_manutencao()
+        elif opcao_rel == '5':
+            relatorios.relatorio_servidores_tecnicos_setor()
+        elif opcao_rel == '6':
+            relatorios.relatorio_funcionario_mais_retiradas()
+        elif opcao_rel == '7':
+            relatorios.relatorio_chaves_bloco_b_labs()
+        elif opcao_rel == '8':
+            relatorios.relatorio_laboratorio_mais_computadores()
+        elif opcao_rel == '9':
+            relatorios.relatorio_emprestimos_data_especifica()
+        elif opcao_rel == '10':
+            relatorios.relatorio_discrepancia_status_sala()
+        elif opcao_rel == '0':
+            break
+        else:
+            print("Opção inválida.")
+
+# --- MENU PRINCIPAL ATUALIZADO ---
 def main_menu():
     while True:
         print("\n======================================")
@@ -159,6 +205,7 @@ def main_menu():
         print("3. Consultar Chaves Disponíveis")
         print("4. Cadastrar Nova Pessoa")
         print("5. Cadastrar Nova Sala")
+        print("6. Acessar Relatórios") # <--- ADICIONADO
         print("0. Sair")
         print("--------------------------------------")
         
@@ -174,6 +221,8 @@ def main_menu():
             menu_cadastro_pessoa()
         elif opcao == '5':
             menu_cadastro_sala()
+        elif opcao == '6':        
+            menu_relatorios()
         elif opcao == '0':
             print("Saindo do sistema...")
             sys.exit()
