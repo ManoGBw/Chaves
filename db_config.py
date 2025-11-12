@@ -1,3 +1,4 @@
+# PRECISA ALTERAR OS DADOS DE ACESSO DO BANCO
 DB_CONFIG = {
     'host': 'localhost',        
     'user': 'root',

@@ -247,7 +247,7 @@ def main_menu():
         elif opcao == '2':
             menu_devolucao()
         elif opcao == '3':
-            operacoes_db.verificar_chaves_disponis()
+            operacoes_db.verificar_chaves_disponiveis()
         elif opcao == '4':
             menu_cadastro_pessoa()
         elif opcao == '5':
