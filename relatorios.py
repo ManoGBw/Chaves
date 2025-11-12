@@ -1,6 +1,3 @@
-# relatorios.py
-# Este arquivo contém funções para gerar relatórios de consulta ao banco de dados.
-
 import db_manager
 
 # -----------------------------------------------------------------
