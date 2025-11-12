@@ -149,29 +149,66 @@ def relatorio_funcionario_mais_retiradas():
         r = resultados[0]
         print(f"Funcionário com mais retiradas: {r['nome_funcionario']} (Total: {r['total_retiradas']} retiradas)")
 
+# Em relatorios.py
+# (Certifique-se de que 'import db_manager' está no topo do arquivo)
+
 # -----------------------------------------------------------------
 # 7. Chaves por Bloco (Codigo Visual)
 # -----------------------------------------------------------------
-def relatorio_chaves_por_bloco(nome_bloco):
-    print(f"\n--- Relatório: Chaves do '{nome_bloco}' ---")
+def relatorio_chaves_por_bloco():
+    print("\n--- Relatório: Chaves por Bloco ---")
     
-    query = """
+    # 1. Listar todos os blocos disponíveis
+    print("Buscando blocos cadastrados...")
+    query_blocos = "SELECT id_bloco, nome_bloco FROM BLOCO ORDER BY nome_bloco"
+    blocos = db_manager.execute_query(query_blocos)
+    
+    if not blocos:
+        print("Erro: Nenhum bloco foi cadastrado no sistema.")
+        print("É necessário cadastrar um bloco antes de consultar suas chaves.")
+        return
+        
+    print("\n--- Blocos Disponíveis ---")
+    for b in blocos:
+        print(f"ID: {b['id_bloco']} | Nome: {b['nome_bloco']}")
+    
+    # 2. Pedir o ID ao usuário
+    try:
+        id_bloco_desejado = int(input("\nDigite o ID do Bloco que deseja consultar: "))
+    except ValueError:
+        print("Erro: ID inválido. Deve ser um número.")
+        return
+
+    # 3. Buscar as chaves para o ID selecionado
+    query_chaves = """
     SELECT 
-        c.codigo_visual
+        c.codigo_visual,
+        s.numero_sala
     FROM BLOCO b
     JOIN SALA s ON b.id_bloco = s.id_bloco
     JOIN CHAVE c ON s.id_sala = c.id_sala
-    WHERE b.nome_bloco = %s
+    WHERE b.id_bloco = %s
     """
-    resultados = db_manager.execute_query(query, (nome_bloco,))
+    resultados = db_manager.execute_query(query_chaves, (id_bloco_desejado,))
     
+    # 4. Exibir os resultados
     if not resultados:
-        print(f"Nenhuma chave encontrada para o bloco '{nome_bloco}'.")
+        # Verifica se o bloco ao menos existia
+        bloco_encontrado = next((item for item in blocos if item["id_bloco"] == id_bloco_desejado), None)
+        if not bloco_encontrado:
+             print(f"Erro: O Bloco com ID {id_bloco_desejado} não existe.")
+        else:
+             print(f"Nenhuma chave encontrada para o bloco com ID {id_bloco_desejado} ({bloco_encontrado['nome_bloco']}).")
         return
     
-    print(f"Códigos Visuais das Chaves no '{nome_bloco}':")
+    # Pega o nome do bloco para exibir no título
+    nome_bloco_selecionado = next(item['nome_bloco'] for item in blocos if item["id_bloco"] == id_bloco_desejado)
+    
+    print(f"\n--- Chaves encontradas no '{nome_bloco_selecionado}' (ID: {id_bloco_desejado}) ---")
+    print("Código Visual | Sala")
+    print("-------------------------")
     for r in resultados:
-        print(f"- {r['codigo_visual']}")
+        print(f"- {r['codigo_visual']} (Sala: {r['numero_sala']})")
 
 # -----------------------------------------------------------------
 # 8. Sala com mais computadores (Numero, Status)

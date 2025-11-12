@@ -205,11 +205,7 @@ def menu_relatorios():
             relatorios.relatorio_funcionario_mais_retiradas()
 
         elif opcao_rel == '7':
-            bloco = input("Digite o Nome do Bloco (ex: Bloco B - Laboratórios): ")
-            if bloco:
-                relatorios.relatorio_chaves_por_bloco(bloco)
-            else:
-                print("Erro: Nome do bloco não pode ser vazio.")
+            relatorios.relatorio_chaves_por_bloco()
 
         elif opcao_rel == '8':
             relatorios.relatorio_laboratorio_mais_computadores()
