@@ -232,7 +232,8 @@ def listar_blocos():
         print(f"ID: {bloco['id_bloco']} | Nome: {bloco['nome_bloco']}")
     return True
 
-def cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade):
+def cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade, codigo_visual):
+    """Cadastra SALA, SALA_DE_AULA e CHAVE (em uma transação)."""
     conn = db_manager.get_connection()
     if conn is None:
         return
@@ -246,33 +247,41 @@ def cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade):
         cursor.execute(query_sala, (numero_sala, id_bloco))
         
         id_sala_gerado = cursor.lastrowid
-        
+
         query_tipo = """
         INSERT INTO SALA_DE_AULA (id_sala, capacidade_alunos) 
         VALUES (%s, %s)
         """
         cursor.execute(query_tipo, (id_sala_gerado, capacidade))
 
+        query_chave = """
+        INSERT INTO CHAVE (codigo_visual, id_sala) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_chave, (codigo_visual, id_sala_gerado))
+
         conn.commit()
-        print(f"Sala de Aula '{numero_sala}' (ID: {id_sala_gerado}) cadastrada com sucesso.")
+        print(f"Sala de Aula '{numero_sala}' (ID: {id_sala_gerado}) e Chave '{codigo_visual}' cadastradas com sucesso.")
 
     except mysql.connector.Error as err:
         print(f"Erro ao cadastrar Sala de Aula: {err}")
-        if err.errno == 1452: 
+        if err.errno == 1062: 
+            print("Erro: O Código Visual da Chave já existe ou a Sala já possui uma chave.")
+        elif err.errno == 1452: 
             print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
-        conn.rollback()
+        conn.rollback() 
     finally:
         cursor.close()
         conn.close()
 
-def cadastrar_laboratorio(numero_sala, id_bloco, qtde_computadores):
+def cadastrar_laboratorio(numero_sala, id_bloco, qtde_computadores, codigo_visual):
+    """Cadastra SALA, LABORATORIO e CHAVE (em uma transação)."""
     conn = db_manager.get_connection()
     if conn is None:
         return
     cursor = conn.cursor(buffered=True)
     
     try:
-        # 1. Insere na tabela 'Pai' (SALA)
         query_sala = """
         INSERT INTO SALA (numero_sala, status, id_bloco) 
         VALUES (%s, 'Disponível', %s)
@@ -280,33 +289,41 @@ def cadastrar_laboratorio(numero_sala, id_bloco, qtde_computadores):
         cursor.execute(query_sala, (numero_sala, id_bloco))
         
         id_sala_gerado = cursor.lastrowid
-        
+
         query_tipo = """
         INSERT INTO LABORATORIO (id_sala, qtde_computadores) 
         VALUES (%s, %s)
         """
         cursor.execute(query_tipo, (id_sala_gerado, qtde_computadores))
 
+        query_chave = """
+        INSERT INTO CHAVE (codigo_visual, id_sala) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_chave, (codigo_visual, id_sala_gerado))
+
         conn.commit()
-        print(f"Laboratório '{numero_sala}' (ID: {id_sala_gerado}) cadastrado com sucesso.")
+        print(f"Laboratório '{numero_sala}' (ID: {id_sala_gerado}) e Chave '{codigo_visual}' cadastrados com sucesso.")
 
     except mysql.connector.Error as err:
         print(f"Erro ao cadastrar Laboratório: {err}")
-        if err.errno == 1452:
+        if err.errno == 1062:
+            print("Erro: O Código Visual da Chave já existe ou a Sala já possui uma chave.")
+        elif err.errno == 1452:
             print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
         conn.rollback()
     finally:
         cursor.close()
         conn.close()
 
-def cadastrar_escritorio(numero_sala, id_bloco, setor_responsavel):
+def cadastrar_escritorio(numero_sala, id_bloco, setor_responsavel, codigo_visual):
+    """Cadastra SALA, ESCRITORIO e CHAVE (em uma transação)."""
     conn = db_manager.get_connection()
     if conn is None:
         return
     cursor = conn.cursor(buffered=True)
     
     try:
-        # 1. Insere na tabela 'Pai' (SALA)
         query_sala = """
         INSERT INTO SALA (numero_sala, status, id_bloco) 
         VALUES (%s, 'Disponível', %s)
@@ -321,12 +338,20 @@ def cadastrar_escritorio(numero_sala, id_bloco, setor_responsavel):
         """
         cursor.execute(query_tipo, (id_sala_gerado, setor_responsavel))
 
+        query_chave = """
+        INSERT INTO CHAVE (codigo_visual, id_sala) 
+        VALUES (%s, %s)
+        """
+        cursor.execute(query_chave, (codigo_visual, id_sala_gerado))
+
         conn.commit()
-        print(f"Escritório '{numero_sala}' (ID: {id_sala_gerado}) cadastrado com sucesso.")
+        print(f"Escritório '{numero_sala}' (ID: {id_sala_gerado}) e Chave '{codigo_visual}' cadastrados com sucesso.")
 
     except mysql.connector.Error as err:
         print(f"Erro ao cadastrar Escritório: {err}")
-        if err.errno == 1452:
+        if err.errno == 1062:
+            print("Erro: O Código Visual da Chave já existe ou a Sala já possui uma chave.")
+        elif err.errno == 1452:
             print(f"Erro: O Bloco com ID '{id_bloco}' não existe.")
         conn.rollback()
     finally:

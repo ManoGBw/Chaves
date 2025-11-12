@@ -87,7 +87,12 @@ def menu_cadastro_pessoa():
         else:
             print("Opção inválida.")
 
+# main.py
+
+# ... (funções anteriores ficam iguais) ...
+
 def menu_cadastro_sala():
+    """Exibe o sub-menu para cadastro de tipos de sala."""
     while True:
         print("\n--- Cadastrar Nova Sala ---")
         print("1. Cadastrar Sala de Aula")
@@ -102,12 +107,19 @@ def menu_cadastro_sala():
 
         print("Buscando blocos...")
         if not operacoes_db.listar_blocos():
-            continue
-          
+            continue 
+            
         print("\n--- Preencha os dados da Sala ---")
         try:
             numero_sala = input("Número/Nome da Sala (ex: '101A' ou 'Lab de Redes'): ")
             id_bloco = int(input("ID do Bloco (veja lista acima): "))
+
+            codigo_visual = input("Código Visual da Chave para esta sala (ex: CHV-A101): ")
+
+            if not numero_sala or not codigo_visual:
+                print("Erro: O Nome/Número da sala e o Código Visual são obrigatórios.")
+                continue
+
         except ValueError:
             print("Erro: ID do Bloco deve ser um número.")
             continue
@@ -115,14 +127,14 @@ def menu_cadastro_sala():
         if opcao_sala == '1':
             try:
                 capacidade = int(input("Capacidade de Alunos: "))
-                operacoes_db.cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade)
+                operacoes_db.cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade, codigo_visual)
             except ValueError:
                 print("Erro: Capacidade deve ser um número.")
                 
         elif opcao_sala == '2':
             try:
                 qtde = int(input("Quantidade de Computadores: "))
-                operacoes_db.cadastrar_laboratorio(numero_sala, id_bloco, qtde)
+                operacoes_db.cadastrar_laboratorio(numero_sala, id_bloco, qtde, codigo_visual)
             except ValueError:
                 print("Erro: Quantidade deve ser um número.")
                 
@@ -131,11 +143,11 @@ def menu_cadastro_sala():
             if not setor:
                 print("Erro: Setor é obrigatório.")
                 continue
-            operacoes_db.cadastrar_escritorio(numero_sala, id_bloco, setor)
+            # --- MUDANÇA AQUI ---
+            operacoes_db.cadastrar_escritorio(numero_sala, id_bloco, setor, codigo_visual)
             
         else:
             print("Opção inválida.")
-
 
 def main_menu():
     while True:
