@@ -1,10 +1,10 @@
 import db_manager
 
 # -----------------------------------------------------------------
-# 1. Professores de Informática (Nome, Telefone)
+# 1. Professores por Departamento (Nome, Telefone)
 # -----------------------------------------------------------------
-def relatorio_professores_informatica():
-    print("\n--- Relatório: Professores do Depto. de Informática ---")
+def relatorio_professores_por_depto(departamento):
+    print(f"\n--- Relatório: Professores do Depto. de '{departamento}' ---")
     
     query = """
     SELECT 
@@ -12,12 +12,12 @@ def relatorio_professores_informatica():
         p.telefone
     FROM PESSOA p
     JOIN PROFESSOR pr ON p.cpf = pr.cpf
-    WHERE pr.departamento = 'Informática'
+    WHERE pr.departamento = %s
     """
-    resultados = db_manager.execute_query(query)
+    resultados = db_manager.execute_query(query, (departamento,))
     
     if not resultados:
-        print("Nenhum professor encontrado para o departamento 'Informática'.")
+        print(f"Nenhum professor encontrado para o departamento '{departamento}'.")
         return
     
     print(f"Encontrados {len(resultados)} professor(es):")
@@ -27,10 +27,10 @@ def relatorio_professores_informatica():
         print(f"{r['nome']} | {r['telefone']}")
 
 # -----------------------------------------------------------------
-# 2. Pessoa com a chave '102' (Nome)
+# 2. Pessoa com a chave de uma sala específica (Nome)
 # -----------------------------------------------------------------
-def relatorio_pessoa_com_chave_102():
-    print("\n--- Relatório: Pessoa atualmente com a chave da sala '102' ---")
+def relatorio_pessoa_com_chave(numero_sala):
+    print(f"\n--- Relatório: Pessoa atualmente com a chave da sala '{numero_sala}' ---")
     
     query = """
     SELECT 
@@ -40,58 +40,67 @@ def relatorio_pessoa_com_chave_102():
     JOIN EMPRESTIMO e ON c.id_chave = e.id_chave
     JOIN PESSOA p ON e.cpf_pessoa = p.cpf
     WHERE 
-        s.numero_sala = '102' 
+        s.numero_sala = %s 
         AND e.data_hora_devolucao IS NULL
     """
-    resultados = db_manager.execute_query(query) 
+    resultados = db_manager.execute_query(query, (numero_sala,)) 
     
     if not resultados:
-        print("Ninguém está com a chave da sala '102' no momento, ou a sala não existe.")
+        print(f"Ninguém está com a chave da sala '{numero_sala}' no momento, ou a sala não existe.")
     else:
-        
         print(f"A pessoa com a chave é: {resultados[0]['nome']}")
 
 # -----------------------------------------------------------------
-# 3. Salas de Aula com capacidade > 45 (COUNT)
+# 3. Salas de Aula com capacidade > X (LISTA e COUNT)
 # -----------------------------------------------------------------
-def relatorio_contagem_salas_aula_maior_45():
-    print("\n--- Relatório: Quantidade de Salas de Aula com capacidade > 45 ---")
+def relatorio_contagem_salas_aula_maior_que(capacidade):
+    print(f"\n--- Relatório: Salas de Aula com capacidade > {capacidade} ---")
     
     query = """
-    SELECT COUNT(id_sala) as total
-    FROM SALA_DE_AULA
-    WHERE capacidade_alunos > 45
+    SELECT 
+        s.numero_sala,
+        sa.capacidade_alunos
+    FROM SALA_DE_AULA sa
+    JOIN SALA s ON sa.id_sala = s.id_sala
+    WHERE sa.capacidade_alunos > %s
+    ORDER BY sa.capacidade_alunos DESC
     """
-    resultados = db_manager.execute_query(query)
+    resultados = db_manager.execute_query(query, (capacidade,))
     
     if not resultados:
-        print("Erro ao executar a contagem.")
+        print(f"Nenhuma sala de aula encontrada com capacidade superior a {capacidade} alunos.")
     else:
-        print(f"Total de salas com capacidade superior a 45 alunos: {resultados[0]['total']}")
-
+        total_salas = len(resultados)
+        print(f"Total de {total_salas} sala(s) encontrada(s) com capacidade superior a {capacidade} alunos:")
+        print("----------------------------------------")
+        print("Sala | Capacidade")
+        print("----------------------------------------")
+        for r in resultados:
+            print(f"{r['numero_sala']} | {r['capacidade_alunos']} alunos")
 # -----------------------------------------------------------------
-# 4. Salas 'Em Manutenção' (Numero)
+# 4. Salas por Status (Numero)
 # -----------------------------------------------------------------
-def relatorio_salas_em_manutencao():
-    print("\n--- Relatório: Salas em 'Em Manutenção' ---")
+def relatorio_salas_por_status(status):
+    print(f"\n--- Relatório: Salas com status '{status}' ---")
     
     query = """
     SELECT numero_sala
     FROM SALA
-    WHERE status = 'Em Manutenção'
+    WHERE status = %s
     """
-    resultados = db_manager.execute_query(query)
+    resultados = db_manager.execute_query(query, (status,))
     
     if not resultados:
-        print("Nenhuma sala encontrada com o status 'Em Manutenção'.")
+        print(f"Nenhuma sala encontrada com o status '{status}'.")
         return
     
-    print("Salas em Manutenção:")
+    print(f"Salas com status '{status}':")
     for r in resultados:
         print(f"- Sala: {r['numero_sala']}")
 
 # -----------------------------------------------------------------
 # 5. Servidores Técnicos (Nome, Setor) ordenado por Nome
+# (Este relatório não precisava de parâmetros)
 # -----------------------------------------------------------------
 def relatorio_servidores_tecnicos_setor():
     print("\n--- Relatório: Servidores Técnicos e seus Setores (Ordenado por Nome) ---")
@@ -117,6 +126,7 @@ def relatorio_servidores_tecnicos_setor():
 
 # -----------------------------------------------------------------
 # 6. Funcionário com mais retiradas (Nome)
+# (Este relatório não precisava de parâmetros)
 # -----------------------------------------------------------------
 def relatorio_funcionario_mais_retiradas():
     print("\n--- Relatório: Funcionário com Mais Registros de Retirada ---")
@@ -140,11 +150,10 @@ def relatorio_funcionario_mais_retiradas():
         print(f"Funcionário com mais retiradas: {r['nome_funcionario']} (Total: {r['total_retiradas']} retiradas)")
 
 # -----------------------------------------------------------------
-# 7. Chaves do 'Bloco B - Laboratórios' (Codigo Visual)
+# 7. Chaves por Bloco (Codigo Visual)
 # -----------------------------------------------------------------
-def relatorio_chaves_bloco_b_labs():
-    print("\n--- Relatório: Chaves do 'Bloco B - Laboratórios' ---")
-    nome_bloco = 'Bloco B - Laboratórios'
+def relatorio_chaves_por_bloco(nome_bloco):
+    print(f"\n--- Relatório: Chaves do '{nome_bloco}' ---")
     
     query = """
     SELECT 
@@ -166,6 +175,7 @@ def relatorio_chaves_bloco_b_labs():
 
 # -----------------------------------------------------------------
 # 8. Sala com mais computadores (Numero, Status)
+# (Este relatório não precisava de parâmetros)
 # -----------------------------------------------------------------
 def relatorio_laboratorio_mais_computadores():
     print("\n--- Relatório: Laboratório com Maior Quantidade de Computadores ---")
@@ -190,10 +200,9 @@ def relatorio_laboratorio_mais_computadores():
         print(f"Status Atual: {r['status']}")
 
 # -----------------------------------------------------------------
-# 9. Empréstimos em '2025-10-15' (ID, Nome Pessoa, Nome Funcionário)
+# 9. Empréstimos em data específica (ID, Nome Pessoa, Nome Funcionário)
 # -----------------------------------------------------------------
-def relatorio_emprestimos_data_especifica():
-    data_consulta = '2025-10-15'
+def relatorio_emprestimos_por_data(data_consulta):
     print(f"\n--- Relatório: Empréstimos realizados em {data_consulta} ---")
     
     query = """
@@ -206,19 +215,31 @@ def relatorio_emprestimos_data_especifica():
     JOIN FUNCIONARIO f ON e.id_funcionario_retirada = f.id_funcionario
     WHERE DATE(e.data_hora_retirada) = %s
     """
-    resultados = db_manager.execute_query(query, (data_consulta,))
-    
-    if not resultados:
-        print(f"Nenhum empréstimo encontrado para a data {data_consulta}.")
-        return
-    
-    print("ID Empréstimo | Nome da Pessoa | Nome do Funcionário (Retirada)")
-    print("------------------------------------------------------------------")
-    for r in resultados:
-        print(f"{r['id_emprestimo']} | {r['nome_pessoa']} | {r['nome_funcionario']}")
+    # Validação simples da data (formato YYYY-MM-DD)
+    try:
+        if len(data_consulta) != 10 or data_consulta[4] != '-' or data_consulta[7] != '-':
+            raise ValueError("Formato de data inválido. Use YYYY-MM-DD.")
+        
+        resultados = db_manager.execute_query(query, (data_consulta,))
+        
+        if not resultados:
+            print(f"Nenhum empréstimo encontrado para a data {data_consulta}.")
+            return
+        
+        print("ID Empréstimo | Nome da Pessoa | Nome do Funcionário (Retirada)")
+        print("------------------------------------------------------------------")
+        for r in resultados:
+            print(f"{r['id_emprestimo']} | {r['nome_pessoa']} | {r['nome_funcionario']}")
+            
+    except ValueError as e:
+        print(f"Erro: {e}")
+    except Exception as e:
+        print(f"Erro ao consultar o banco: {e}")
+
 
 # -----------------------------------------------------------------
 # 10. Chaves (com empréstimo) cuja sala NÃO está 'Indisponível'
+# (Este relatório não precisava de parâmetros)
 # -----------------------------------------------------------------
 def relatorio_discrepancia_status_sala():
     print("\n--- Relatório: (Discrepância) Chaves com Empréstimo Ativo mas Sala NÃO 'Indisponível' ---")

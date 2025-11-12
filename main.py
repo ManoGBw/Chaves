@@ -1,5 +1,5 @@
 import operacoes_db
-import relatorios # <--- ADICIONADO
+import relatorios 
 import sys
 
 def menu_emprestimo():
@@ -12,7 +12,11 @@ def menu_emprestimo():
         print("Erro: Todos os campos são obrigatórios.")
         return
     
-    operacoes_db.realizar_emprestimo(cpf, codigo_chave, int(id_funcionario))
+    try:
+        operacoes_db.realizar_emprestimo(cpf, codigo_chave, int(id_funcionario))
+    except ValueError:
+        print("Erro: ID do Funcionário deve ser um número.")
+
 
 def menu_devolucao():
     print("\n== Registrar Devolução ==")
@@ -23,7 +27,10 @@ def menu_devolucao():
         print("Erro: Todos os campos são obrigatórios.")
         return
         
-    operacoes_db.realizar_devolucao(codigo_chave, int(id_funcionario))
+    try:
+        operacoes_db.realizar_devolucao(codigo_chave, int(id_funcionario))
+    except ValueError:
+        print("Erro: ID do Funcionário deve ser um número.")
 
 def menu_cadastrar_aluno():
     print("\n== Cadastrar Novo Aluno ==")
@@ -88,10 +95,6 @@ def menu_cadastro_pessoa():
         else:
             print("Opção inválida.")
 
-# main.py
-
-# ... (funções anteriores ficam iguais) ...
-
 def menu_cadastro_sala():
     """Exibe o sub-menu para cadastro de tipos de sala."""
     while True:
@@ -114,7 +117,6 @@ def menu_cadastro_sala():
         try:
             numero_sala = input("Número/Nome da Sala (ex: '101A' ou 'Lab de Redes'): ")
             id_bloco = int(input("ID do Bloco (veja lista acima): "))
-
             codigo_visual = input("Código Visual da Chave para esta sala (ex: CHV-A101): ")
 
             if not numero_sala or not codigo_visual:
@@ -144,57 +146,90 @@ def menu_cadastro_sala():
             if not setor:
                 print("Erro: Setor é obrigatório.")
                 continue
-            # --- MUDANÇA AQUI ---
             operacoes_db.cadastrar_escritorio(numero_sala, id_bloco, setor, codigo_visual)
             
         else:
             print("Opção inválida.")
 
-# --- NOVO MENU DE RELATÓRIOS ---
+# --- MENU DE RELATÓRIOS ATUALIZADO ---
 def menu_relatorios():
     """Exibe o sub-menu para geração de relatórios."""
     while True:
         print("\n--- Menu de Relatórios ---")
-        print("1. Professores de Informática")
-        print("2. Quem está com a chave da sala '102'")
-        print("3. Contagem de salas de aula (Capacidade > 45)")
-        print("4. Salas em Manutenção")
+        print("1. Professores por Departamento")
+        print("2. Quem está com a chave de uma sala")
+        print("3. Contagem de salas de aula (Capacidade > X)")
+        print("4. Salas por Status (Ex: Em Manutenção)")
         print("5. Servidores Técnicos e Setores (Ordenado)")
         print("6. Funcionário com mais retiradas")
-        print("7. Chaves do 'Bloco B - Laboratórios'")
+        print("7. Chaves por Bloco")
         print("8. Laboratório com mais computadores")
-        print("9. Empréstimos na data '2025-10-15'")
+        print("9. Empréstimos em data específica")
         print("10. Discrepância: Empréstimo ativo mas sala não 'Indisponível'")
         print("0. Voltar ao Menu Principal")
         
         opcao_rel = input("Escolha um relatório: ")
 
         if opcao_rel == '1':
-            relatorios.relatorio_professores_informatica()
+            depto = input("Digite o nome do Departamento (ex: Informática, Engenharia ou TI): ")
+            if depto:
+                relatorios.relatorio_professores_por_depto(depto)
+            else:
+                print("Erro: Departamento não pode ser vazio.")
+                
         elif opcao_rel == '2':
-            relatorios.relatorio_pessoa_com_chave_102()
+            sala = input("Digite o Número da Sala (ex: 102): ")
+            if sala:
+                relatorios.relatorio_pessoa_com_chave(sala)
+            else:
+                print("Erro: Número da sala não pode ser vazio.")
+
         elif opcao_rel == '3':
-            relatorios.relatorio_contagem_salas_aula_maior_45()
+            try:
+                capacidade = int(input("Digite a capacidade mínima (ex: 45): "))
+                relatorios.relatorio_contagem_salas_aula_maior_que(capacidade)
+            except ValueError:
+                print("Erro: Capacidade deve ser um número.")
+                
         elif opcao_rel == '4':
-            relatorios.relatorio_salas_em_manutencao()
+            status = input("Digite o Status da Sala (ex: Em Manutenção, Disponível, Indisponível): ")
+            if status:
+                relatorios.relatorio_salas_por_status(status)
+            else:
+                print("Erro: Status não pode ser vazio.")
+
         elif opcao_rel == '5':
             relatorios.relatorio_servidores_tecnicos_setor()
+
         elif opcao_rel == '6':
             relatorios.relatorio_funcionario_mais_retiradas()
+
         elif opcao_rel == '7':
-            relatorios.relatorio_chaves_bloco_b_labs()
+            bloco = input("Digite o Nome do Bloco (ex: Bloco B - Laboratórios): ")
+            if bloco:
+                relatorios.relatorio_chaves_por_bloco(bloco)
+            else:
+                print("Erro: Nome do bloco não pode ser vazio.")
+
         elif opcao_rel == '8':
             relatorios.relatorio_laboratorio_mais_computadores()
+
         elif opcao_rel == '9':
-            relatorios.relatorio_emprestimos_data_especifica()
+            data = input("Digite a data da consulta (Formato YYYY-MM-DD): ")
+            if data:
+                relatorios.relatorio_emprestimos_por_data(data)
+            else:
+                print("Erro: Data não pode ser vazia.")
+
         elif opcao_rel == '10':
             relatorios.relatorio_discrepancia_status_sala()
+
         elif opcao_rel == '0':
             break
         else:
             print("Opção inválida.")
 
-# --- MENU PRINCIPAL ATUALIZADO ---
+# --- MENU PRINCIPAL (Sem mudanças, mas incluído para completude) ---
 def main_menu():
     while True:
         print("\n======================================")
@@ -205,7 +240,7 @@ def main_menu():
         print("3. Consultar Chaves Disponíveis")
         print("4. Cadastrar Nova Pessoa")
         print("5. Cadastrar Nova Sala")
-        print("6. Acessar Relatórios") # <--- ADICIONADO
+        print("6. Acessar Relatórios") 
         print("0. Sair")
         print("--------------------------------------")
         
@@ -216,7 +251,7 @@ def main_menu():
         elif opcao == '2':
             menu_devolucao()
         elif opcao == '3':
-            operacoes_db.verificar_chaves_disponiveis()
+            operacoes_db.verificar_chaves_disponis()
         elif opcao == '4':
             menu_cadastro_pessoa()
         elif opcao == '5':
