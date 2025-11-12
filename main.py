@@ -1,38 +1,30 @@
-# main.py
 import operacoes_db
 import sys
 
 def menu_emprestimo():
-    """Coleta dados para realizar um empréstimo."""
     print("\n== Registrar Empréstimo ==")
     cpf = input("CPF da Pessoa (só números, ex: 12345678900): ")
     codigo_chave = input("Código Visual da Chave: ")
-    # <-- MUDANÇA: Pedimos o ID numérico do funcionário
     id_funcionario = input("ID do Funcionário da portaria: ") 
     
     if not (cpf and codigo_chave and id_funcionario):
         print("Erro: Todos os campos são obrigatórios.")
         return
     
-    # <-- MUDANÇA: Passamos o id_funcionario
     operacoes_db.realizar_emprestimo(cpf, codigo_chave, int(id_funcionario))
 
 def menu_devolucao():
-    """Coleta dados para realizar uma devolução."""
     print("\n== Registrar Devolução ==")
     codigo_chave = input("Código Visual da Chave: ")
-    # <-- MUDANÇA: Pedimos o ID numérico do funcionário
     id_funcionario = input("ID do Funcionário da portaria: ")
 
     if not (codigo_chave and id_funcionario):
         print("Erro: Todos os campos são obrigatórios.")
         return
         
-    # <-- MUDANÇA: Passamos o id_funcionario
     operacoes_db.realizar_devolucao(codigo_chave, int(id_funcionario))
 
 def menu_cadastrar_aluno():
-    """Coleta dados para cadastrar um novo aluno."""
     print("\n== Cadastrar Novo Aluno ==")
     cpf = input("CPF (ex: 12345678900): ")
     nome = input("Nome Completo: ")
@@ -46,7 +38,6 @@ def menu_cadastrar_aluno():
     operacoes_db.cadastrar_aluno(cpf, nome, telefone, matricula)
 
 def menu_cadastrar_professor():
-    """Coleta dados para cadastrar um novo professor."""
     print("\n== Cadastrar Novo Professor ==")
     cpf = input("CPF (ex: 12345678900): ")
     nome = input("Nome Completo: ")
@@ -61,7 +52,6 @@ def menu_cadastrar_professor():
     operacoes_db.cadastrar_professor(cpf, nome, telefone, siape, departamento)
 
 def menu_cadastrar_servidor():
-    """Coleta dados para cadastrar um novo servidor técnico."""
     print("\n== Cadastrar Novo Servidor Técnico ==")
     cpf = input("CPF (ex: 12345678900): ")
     nome = input("Nome Completo: ")
@@ -77,7 +67,6 @@ def menu_cadastrar_servidor():
 
 
 def menu_cadastro_pessoa():
-    """Exibe o sub-menu para cadastro de tipos de pessoa."""
     while True:
         print("\n--- Cadastrar Nova Pessoa ---")
         print("1. Cadastrar Aluno")
@@ -94,12 +83,11 @@ def menu_cadastro_pessoa():
         elif opcao_pessoa == '3':
             menu_cadastrar_servidor()
         elif opcao_pessoa == '0':
-            break # Volta ao menu principal
+            break
         else:
             print("Opção inválida.")
 
 def menu_cadastro_sala():
-    """Exibe o sub-menu para cadastro de tipos de sala."""
     while True:
         print("\n--- Cadastrar Nova Sala ---")
         print("1. Cadastrar Sala de Aula")
@@ -110,36 +98,31 @@ def menu_cadastro_sala():
         opcao_sala = input("Escolha o tipo de sala: ")
         
         if opcao_sala == '0':
-            break # Volta ao menu principal
+            break
 
-        # Antes de pedir dados, lista os blocos existentes
         print("Buscando blocos...")
         if not operacoes_db.listar_blocos():
-            # Se não houver blocos, não podemos cadastrar salas
-            continue # Volta ao menu de cadastro de sala
-            
+            continue
+          
         print("\n--- Preencha os dados da Sala ---")
         try:
-            # Coleta informações comuns a todas as salas
-            id_sala = int(input("ID da Sala (número ex: 101): "))
             numero_sala = input("Número/Nome da Sala (ex: '101A' ou 'Lab de Redes'): ")
             id_bloco = int(input("ID do Bloco (veja lista acima): "))
         except ValueError:
-            print("Erro: ID da Sala e ID do Bloco devem ser números.")
+            print("Erro: ID do Bloco deve ser um número.")
             continue
 
-        # Coleta informações específicas do tipo de sala
         if opcao_sala == '1':
             try:
                 capacidade = int(input("Capacidade de Alunos: "))
-                operacoes_db.cadastrar_sala_de_aula(id_sala, numero_sala, id_bloco, capacidade)
+                operacoes_db.cadastrar_sala_de_aula(numero_sala, id_bloco, capacidade)
             except ValueError:
                 print("Erro: Capacidade deve ser um número.")
                 
         elif opcao_sala == '2':
             try:
                 qtde = int(input("Quantidade de Computadores: "))
-                operacoes_db.cadastrar_laboratorio(id_sala, numero_sala, id_bloco, qtde)
+                operacoes_db.cadastrar_laboratorio(numero_sala, id_bloco, qtde)
             except ValueError:
                 print("Erro: Quantidade deve ser um número.")
                 
@@ -148,14 +131,13 @@ def menu_cadastro_sala():
             if not setor:
                 print("Erro: Setor é obrigatório.")
                 continue
-            operacoes_db.cadastrar_escritorio(id_sala, numero_sala, id_bloco, setor)
+            operacoes_db.cadastrar_escritorio(numero_sala, id_bloco, setor)
             
         else:
             print("Opção inválida.")
 
 
 def main_menu():
-    """Exibe o menu principal e gerencia a navegação."""
     while True:
         print("\n======================================")
         print("   Sistema de Controle de Chaves   ")
@@ -164,7 +146,7 @@ def main_menu():
         print("2. Realizar Devolução de Chave")
         print("3. Consultar Chaves Disponíveis")
         print("4. Cadastrar Nova Pessoa")
-        print("5. Cadastrar Nova Sala") # <-- MUDANÇA AQUI
+        print("5. Cadastrar Nova Sala")
         print("0. Sair")
         print("--------------------------------------")
         
@@ -179,7 +161,7 @@ def main_menu():
         elif opcao == '4':
             menu_cadastro_pessoa()
         elif opcao == '5':
-            menu_cadastro_sala() # <-- MUDANÇA AQUI
+            menu_cadastro_sala()
         elif opcao == '0':
             print("Saindo do sistema...")
             sys.exit()
